@@ -37,16 +37,6 @@ pip install flask flask_cors numpy matplotlib scipy pandas pywebview
 
    运行后，浏览器访问 [http://127.0.0.1:5000](http://127.0.0.1:5000) 即可看到交互页面。
 
-## 代码说明
-
-- **线性回归实现**  
-  文件中使用 `linear_regression(xs, ys)` 函数通过纯 Python 算法计算斜率、截距和皮尔逊相关系数（r），R² 取其平方。
-
-- **图表生成**  
-  利用 Pillow 生成 800×600 的图像，绘制网格线、坐标轴、散点和拟合直线，并添加标题与轴标签。最终将图像转换为 Base64 字符串供前端显示。
-
-- **CSV 解析**  
-  使用 Python 内置 `csv` 模块解析上传的 CSV 文件，无需额外依赖 pandas。
 
 ## 打包为 exe
 
