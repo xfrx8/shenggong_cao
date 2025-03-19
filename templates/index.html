@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Standard Curve Fitting with CSV Upload</title>
+  <!-- Bootstrap 5 CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #f8f9fa;
+      overflow-x: hidden;
+    }
+    /* Set the design container to a fixed width of 1800px */
+    .scale-container {
+      width: 1800px;
+      transform-origin: top center;
+    }
+    .container-custom {
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .plot-img {
+      max-width: 100%;
+      height: auto;
+    }
+    .card {
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Wrap everything in a scale-container -->
+  <div class="scale-container" id="scale-container">
+    <div class="container-custom">
+      <h1 class="mb-4 text-center">Standard Curve Fitting</h1>
+
+      <!-- Row 1: Manual Input & Results -->
+      <div class="row">
+        <!-- Manual Input Card -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h4>Manual Input (9 Samples)</h4>
+            </div>
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Sample</th>
+                    <th>Concentration (mM)</th>
+                    <th>Voltage (V)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Sample 1</td>
+                    <td><input type="number" id="c1" class="form-control" value="0.2"></td>
+                    <td><input type="number" id="v1" class="form-control"></td>
+                  </tr>
+                  <tr>
+                    <td>Sample 2</td>
+                    <td><input type="number" id="c2" class="form-control" value="0.4"></td>
+                    <td><input type="number" id="v2" class="form-control"></td>
+                  </tr>
+                  <tr>
+                    <td>Sample 3</td>
+                    <td><input type="number" id="c3" class="form-control" value="0.6"></td>
+                    <td><input type="number" id="v3" class="form-control"></td>
+                  </tr>
+                  <tr>
+                    <td>Sample 4</td>
+                    <td><input type="number" id="c4" class="form-control" value="0.8"></td>
+                    <td><input type="number" id="v4" class="form-control"></td>
+                  </tr>
+                  <tr>
+                    <td>Sample 5</td>
+                    <td><input type="number" id="c5" class="form-control" value="1.0"></td>
+                    <td><input type="number" id="v5" class="form-control"></td>
+                  </tr>
+                  <tr>
+                    <td>Sample 6</td>
+                    <td><input type="number" id="c6" class="form-control" value="1.5"></td>
+                    <td><input type="number" id="v6" class="form-control"></td>
+                  </tr>
+                  <tr>
+                    <td>Sample 7</td>
+                    <td><input type="number" id="c7" class="form-control" value="2.0"></td>
+                    <td><input type="number" id="v7" class="form-control"></td>
+                  </tr>
+                  <tr>
+                    <td>Sample 8</td>
+                    <td><input type="number" id="c8" class="form-control" value="2.5"></td>
+                    <td><input type="number" id="v8" class="form-control"></td>
+                  </tr>
+                  <tr>
+                    <td>Sample 9</td>
+                    <td><input type="number" id="c9" class="form-control" value="3.0"></td>
+                    <td><input type="number" id="v9" class="form-control"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <button class="btn btn-primary" onclick="fitCurve()">Calculate Fit Curve</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Fit Results Card -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h4>Manual Fit Results</h4>
+            </div>
+            <div class="card-body">
+              <p id="equation">Equation: y = a * x + b</p>
+              <p id="r_value">R² = </p>
+              <img id="plot" class="plot-img" style="display:none;" alt="Standard Curve">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: CSV Upload & Results -->
+      <div class="row">
+        <!-- CSV Upload Card -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h4>CSV Upload</h4>
+            </div>
+            <div class="card-body">
+              <p>The CSV must have two columns named <code>concentration</code> and <code>voltage</code>.</p>
+              <input type="file" id="csvFile" accept=".csv" class="form-control mb-2">
+              <button class="btn btn-success" onclick="uploadCsv()">Upload & Calculate</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CSV Fit Results Card -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h4>CSV Fit Results</h4>
+            </div>
+            <div class="card-body">
+              <p id="csv_equation">Equation: y = a * x + b</p>
+              <p id="csv_r_value">R² = </p>
+              <img id="csv_plot" class="plot-img" style="display:none;" alt="CSV Standard Curve">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Environmental Samples Test -->
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h4>Environmental Samples Test</h4>
+            </div>
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Sample</th>
+                    <th>Voltage (V)</th>
+                    <th>Concentration (mM)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Sample 1</td>
+                    <td><input type="number" id="test_voltage" class="form-control"></td>
+                    <td><span id="predicted_concentration"></span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <button class="btn btn-secondary" onclick="predictConcentration()">Calculate Concentration</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS (optional) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Adjust scaling based on the window width relative to a design width of 1800px.
+    function adjustScale() {
+      const designWidth = 1800;
+      const scale = window.innerWidth / designWidth;
+      document.getElementById('scale-container').style.transform = 'scale(' + scale + ')';
+    }
+    window.addEventListener('resize', adjustScale);
+    adjustScale();
+
+    // Manual input fit parameters
+    let a, b;
+    // CSV-based fit parameters
+    let csvA, csvB;
+
+    // Manual Input Fitting
+    function fitCurve() {
+      const concentrations = [];
+      const voltages = [];
+      for (let i = 1; i <= 9; i++) {
+        concentrations.push(parseFloat(document.getElementById(`c${i}`).value));
+        voltages.push(parseFloat(document.getElementById(`v${i}`).value));
+      }
+      fetch("http://127.0.0.1:5000/fit_curve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ concentration: concentrations, voltage: voltages })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          alert(`Error: ${data.error}\n${data.message || ""}`);
+          return;
+        }
+        a = data.a;
+        b = data.b;
+        document.getElementById("equation").innerText = `Equation: y = ${a.toFixed(3)}x + ${b.toFixed(3)}`;
+        document.getElementById("r_value").innerText = `R² = ${data.r_squared.toFixed(3)}`;
+        document.getElementById("plot").src = "data:image/png;base64," + data.plot_url;
+        document.getElementById("plot").style.display = "block";
+      })
+      .catch(error => console.error("Error:", error));
+    }
+
+    // CSV Upload and Fitting
+    function uploadCsv() {
+      const fileInput = document.getElementById("csvFile");
+      if (!fileInput.files.length) {
+        alert("Please select a CSV file first.");
+        return;
+      }
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+      fetch("http://127.0.0.1:5000/upload_csv", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          alert(`Error: ${data.error}\n${data.message || ""}`);
+          return;
+        }
+        csvA = data.a;
+        csvB = data.b;
+        document.getElementById("csv_equation").innerText = `Equation: y = ${csvA.toFixed(3)}x + ${csvB.toFixed(3)}`;
+        document.getElementById("csv_r_value").innerText = `R² = ${data.r_squared.toFixed(3)}`;
+        document.getElementById("csv_plot").src = "data:image/png;base64," + data.plot_url;
+        document.getElementById("csv_plot").style.display = "block";
+      })
+      .catch(error => console.error("Error:", error));
+    }
+
+    // Environmental Sample Prediction
+    function predictConcentration() {
+      const voltage = parseFloat(document.getElementById("test_voltage").value);
+      fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voltage: voltage, a: a, b: b })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          alert(`Error: ${data.error}\n${data.message || ""}`);
+          return;
+        }
+        document.getElementById("predicted_concentration").innerText =
+          data.concentration ? data.concentration.toFixed(3) : "N/A";
+      })
+      .catch(error => console.error("Error:", error));
+    }
+  </script>
+</body>
+</html>
